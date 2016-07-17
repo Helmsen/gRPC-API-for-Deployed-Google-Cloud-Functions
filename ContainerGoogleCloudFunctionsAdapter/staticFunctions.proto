@@ -1,0 +1,44 @@
+syntax="proto3";
+
+package staticFunctions;
+
+
+// static functions
+
+message Credentials {
+	string username = 1;
+	string password = 2;
+}
+
+message BucketInfo {
+	string projectID = 1;
+	string bucketName = 2;
+}
+
+message DeployInfo {
+	string indexFile = 1;
+	string packageJson = 2;
+	string bucketName = 3;
+	string functionName = 4;
+}
+
+message StatusInfo {
+	string functionName = 1;
+}
+
+message ViewLogsInfo {
+	string functionName = 1;
+}
+
+message ReturnMessage {
+	string return = 1;
+}
+
+service staticFunctionsService {
+  rpc authenticate (Credentials) returns (ReturnMessage);
+  rpc createBucket (BucketInfo) returns (ReturnMessage);
+  rpc deleteBucket (BucketInfo) returns (ReturnMessage);
+  rpc deployFunction (DeployInfo) returns (ReturnMessage);
+  rpc getStatusOfFunction (StatusInfo) returns (ReturnMessage);
+  rpc viewLogs (ViewLogsInfo) returns (ReturnMessage);
+}

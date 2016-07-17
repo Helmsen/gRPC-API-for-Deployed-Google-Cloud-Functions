@@ -1,0 +1,25 @@
+version: '2'
+services:
+
+  grpcadapter:
+
+  grpcadapterclient:
+    build: ./ContainerGRPCAdapterClient/
+    links:
+      - gcfadapter:gcfadapterc1
+    environment:
+      - SERVER_PORT=50005
+      - SERVER_HOST=gcfadapterc1
+      - PATH_PROTO=/api/main.proto
+    command: ["node", "/fapra/demoCalls.js"]
+    depends_on:
+      - gcfadapter
+
+  gcfadapter:
+    build: ./ContainerGoogleCloudFunctionsAdapter/
+    ports:
+      - "50005:50005"
+    environment:
+      - API_PORT=50005
+      - API_PROTO=/api/main.proto
+    command: ["node", "/fapra/main.js"]

@@ -1,0 +1,63 @@
+syntax="proto3";
+
+package fapra;
+
+message SendObject {
+  string name = 1;
+}
+
+message ReceiveObject {
+  string name = 1;
+}
+
+message Order {
+  string id = 1; // order ID
+  repeated ProductId products = 2;
+  Customer customer = 3;
+  enum Status {
+    NEW = 0;
+    PAYED = 1;
+    SHIPPED = 2;
+    CANCELED = 3;
+  }
+  Status status = 4;
+}
+
+message Customer {
+  string id = 1;
+  string firstname = 2;
+  string lastname = 3;
+  string shippingAddress = 4;
+  string paymentDetails = 5;
+}
+
+message ProductId {
+  string id = 1;
+}
+
+message OrderId {
+  string id = 1;
+}
+
+message AllTypes {
+  string s = 1;
+  double d = 2;
+  float f = 3;
+  int32 i32 = 4;
+  int64 i64 = 5;
+  uint32 ui32 = 6;
+  uint64 ui64 = 7;
+  sint32 si32 = 8;
+  sint64 si64 = 9;
+  fixed32 fi32 = 10;
+  fixed64 fi64 = 11;
+  sfixed32 sfi32 = 12;
+  sfixed64 sfi64 = 13;
+  bool b = 14;
+}
+
+service LeonTestService {
+  rpc testAll(AllTypes) returns (AllTypes); // @URL=https://us-central1.verdant-branch-134413.cloudfunctions.net/returnObject
+  rpc reverse(SendObject) returns (ReceiveObject); // @URL=https://us-central1.verdant-branch-134413.cloudfunctions.net/reverse
+  rpc getOrderDetails(OrderId) returns (Order); // @URL=https://us-central1.verdant-branch-134413.cloudfunctions.net/getDetails
+}
