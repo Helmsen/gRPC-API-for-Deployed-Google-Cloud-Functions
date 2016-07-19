@@ -1,25 +1,35 @@
 version: '2'
 services:
 
-  grpcadapter:
-
-  grpcadapterclient:
-    build: ./ContainerGRPCAdapterClient/
-    links:
-      - gcfadapter:gcfadapterc1
-    environment:
-      - SERVER_PORT=50005
-      - SERVER_HOST=gcfadapterc1
-      - PATH_PROTO=/api/main.proto
-    command: ["node", "/fapra/demoCalls.js"]
-    depends_on:
-      - gcfadapter
-
   gcfadapter:
     build: ./ContainerGoogleCloudFunctionsAdapter/
     ports:
       - "50005:50005"
     environment:
       - API_PORT=50005
-      - API_PROTO=/api/main.proto
+      - API_PROTO_PATH=/api/main.proto
     command: ["node", "/fapra/main.js"]
+
+  grpcadapter:
+    image: wilhelmstephan/grpc-to-graphql-adapter
+    links:
+      - gcfadapter:grpcadapterc2
+    ports:
+      - "40022:40022"
+    environment:
+      - API_HOST=grpcadapterc2
+      - API_PORT=50005
+      - API_PROTO_PATH=/api/main.proto
+    volumes:
+      - ./volumeWithProtoFile:/api
+    depends_on:
+      - gcfadapter
+    command: ["node", "/fapra/graphQlServer.js", "40022"]
+
+  grpcadapterclient:
+    build: ./ContainerGRPCAdapterClient/
+    links:
+      - grpcadapter:grpcadapterc1
+    depends_on:
+      - gcfadapter
+    command: ["/fapra/callMethods.sh", "grpcadapterc1", "40022"]
