@@ -31,5 +31,6 @@ services:
     links:
       - grpcadapter:grpcadapterc1
     depends_on:
+      - grpcadapter
       - gcfadapter
     command: ["/fapra/callMethods.sh", "grpcadapterc1", "40022"]
