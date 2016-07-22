@@ -32,7 +32,6 @@ function main() {
 
     for (var i = 0; i < packageService.length; i++) {
       var serviceFunction = packageService[i];
-	  //TODO parse for actual urls in proto file - serviceFunction.name contains name of the function
       serviceFunction['URL'] = parseProtoFileForURL(protoFile, serviceFunction.name);
     }
   }
