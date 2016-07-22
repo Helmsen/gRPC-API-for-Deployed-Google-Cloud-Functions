@@ -20,8 +20,8 @@ services:
       - API_HOST=grpcadapterc2
       - API_PORT=50005
       - API_PROTO_PATH=/api/main.proto
-    volumes:
-      - ./volumeWithProtoFile:/api
+    volumes_from:
+      - gcfadapter
     depends_on:
       - gcfadapter
     command: ["node", "/fapra/graphQlServer.js", "40022"]

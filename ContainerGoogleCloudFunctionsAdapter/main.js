@@ -11,8 +11,6 @@ function main() {
   if (process.env.API_PROTO_PATH != null) {
     protoFilePath = process.env.API_PROTO_PATH;
   }
-  var staticFunctionsPath = './staticFunctions.proto';
-  var staticFunctionFile = fileSystem.readFileSync(staticFunctionsPath).toString().split("\n");
   var protoFile = fileSystem.readFileSync(protoFilePath).toString().split("\n");
   console.log('Using ' + protoFilePath + ' as proto file.');
   // default port
@@ -24,11 +22,9 @@ function main() {
 
   // load the proto file in memory
   var grpcPackage = grpc.load(protoFilePath);
-  var staticFunctionsPackage = grpc.load(staticFunctionsPath);
 
   // get functions
   serviceFunctions = GetFunctionNames(grpcPackage);
-  staticFunctions = GetFunctionNames(staticFunctionsPackage);
 
   // map functions to URLs
   for (var srv in serviceFunctions) {
@@ -88,24 +84,6 @@ function main() {
     server.addProtoService(serviceObject, callHandlers);
   }
 
-  // create handler functions for staticFunctions
-  var staticHandlers = {};
-  for (var srv in staticFunctions) {
-    var packageService = staticFunctions[srv];
-    console.log('Adding functions for ' + srv + ' to server.');
-
-    var serviceObject = staticFunctionsPackage[packageService[0].parent.parent.name][packageService[0].parent.name].service;
-    server.addProtoService(serviceObject, {
-      authenticate : authenticate,
-      createBucket : createBucket,
-      deleteBucket : deleteBucket,
-      deployFunction : deployFunction,
-      getStatusOfFunction : getStatusOfFunction,
-      viewLogs : viewLogs
-    });
-  }
-
-
   // start the server
   server.bind("0.0.0.0:" + port, grpc.ServerCredentials.createInsecure());
   server.start();
@@ -130,132 +108,6 @@ function parseProtoFileForURL(protoFile, functionName) {
 	} else {
 		return cloudFunctionURL;
 	}
-}
-
-
-// -----------------------------------------------
-// -- Static functions for Google Cloud platform
-// -----------------------------------------------
-
-// authenticate to GCloud
-function authenticate(call, callback) {
-  console.log('\nRequest received for function authenticate:');
-  var username = call.request['username'];
-  var password = call.request['password'];
-  var response;
-
-  cmd.get(
-        'gcloud auth list ',
-        function(data){
-            response = data;
-            console.log(response);
-        }
-    );
-
-  callback(null, response);
-}
-
-// create bucket for project
-function createBucket(call, callback) {
-  console.log('\nRequest received for function createBucket:');
-  var bucketName = call.request['bucketName'];
-  var projectID = call.request['projectID'];
-  var response;
-
-  cmd.get(
-        'gsutil mb -p ' + projectID + ' gs://' + bucketName,
-        function(data){
-            response = data;
-            console.log(response);
-        }
-    );
-
-  if (response == '') {
-    response = "Created Bucket " + bucketName;
-  }
-  callback(null, response);
-}
-// delete bucket in project
-function deleteBucket(call, callback) {
-  console.log('\nRequest received for function deleteBucket:');
-  var bucketName = call.request['bucketName'];
-  var projectID = call.request['projectID'];
-  var response;
-
-  cmd.get(
-        'gsutil rm -r gs://' + bucketName,
-        function(data){
-            response = data;
-            console.log(response);
-        }
-    );
-
-  if (response == '') {
-    response = "Deleted Bucket " + bucketName;
-  }
-  callback(null, response);
-}
-
-// deploy function with filesystem (indexFile + packageJson is passed by user)
-function deployFunction(call, callback) {
-  console.log('\nRequest received for function deployFunction:');
-  var indexFile = call.request['indexFile'];
-  var packageJson = call.request['packageJson'];
-  var bucketName = call.request['bucketName'];
-  var functionName = call.request['functionName'];
-  var response;
-
-  cmd.get(
-        'gcloud alpha functions deploy ' + functionName + ' --bucket ' + bucketName + ' --trigger-topic ' + functionName,
-        function(data){
-            response = data;
-            console.log(response);
-        }
-    );
-
-  if (response == '') {
-    response = "Deployed function " + functionName + ' in bucket ' + bucketName;
-  }
-  callback(null, response);
-}
-
-// get Status of deployed function
-function getStatusOfFunction(call, callback) {
-  console.log('\nRequest received for function getStatusOfFunction:');
-  var functionName = call.request['functionName'];
-  var response;
-
-  cmd.get(
-        'gcloud alpha functions describe ' + functionName,
-        function(data){
-            response = data;
-            console.log(response);
-        }
-    );
-
-  if (response == '') {
-    response = "No status information available for " + functionName;
-  }
-  callback(null, response);
-}
-
-function viewLogs(call, callback) {
-  console.log('\nRequest received for function getStatusOfFunction:');
-  var functionName = call.request['functionName'];
-  var response;
-
-  cmd.get(
-        'gcloud alpha functions get-logs ' + functionName,
-        function(data){
-            response = data;
-            console.log(response);
-        }
-    );
-
-  if (response == '') {
-    response = "No logs available for " + functionName;
-  }
-  callback(null, response);
 }
 
 function CreateRequestHandlerFunction(fnct) {
