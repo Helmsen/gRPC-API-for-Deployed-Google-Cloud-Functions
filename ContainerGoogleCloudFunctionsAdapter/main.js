@@ -110,7 +110,6 @@ function parseProtoFileForURL(protoFile, functionName) {
 }
 
 function CreateRequestHandlerFunction(fnct) {
-  //TODO hier generieren von methodenrümpfen und call via CallGcloud
   var body = 'console.log("\\nRequest received for function: ' + fnct.name + '");' +
   'var returnObject = CallGcloud(\'' + fnct.URL + '\', call.request, callback);';
   return body;
